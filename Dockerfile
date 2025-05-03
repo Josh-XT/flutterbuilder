@@ -28,17 +28,12 @@ RUN mkdir -p ${FLUTTER_HOME} && \
     cd /opt && \
     wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz && \
     tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -C /opt && \
-    rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
+    rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz && \
+    flutter doctor --verbose && \
+    flutter precache --linux --android
 
 RUN git config --global --add safe.directory /opt/flutter && \
     git config --global --add safe.directory /app
-
-# Initialize Flutter first to ensure Dart SDK is available
-RUN flutter --version && \
-    flutter doctor --verbose
-
-# Pre-download Flutter engine artifacts and Dart SDK
-RUN flutter precache --linux --android
 
 # --- Android SDK ---
 ENV ANDROID_SDK_ROOT=/opt/android-sdk
