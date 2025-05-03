@@ -59,20 +59,12 @@ RUN sdkmanager --install \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
     "ndk;${ANDROID_NDK_VERSION}"
 
-# Grant execution permissions for Gradle wrapper
 RUN chmod +x /opt/android-sdk/cmdline-tools/latest/bin/*
 RUN chmod +x /opt/android-sdk/platform-tools/*
 
-# --- Application ---
-# Set working directory
 WORKDIR /app
 
 RUN git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
-    chmod +x /app/agixt_mobile/android/gradlew && \
     cd /app/agixt_mobile && \
-    git checkout 0.0.1 && \
-    flutter pub get && \
-    flutter build apk --release
-
-# (Optional) Define a default command if needed, e.g., for running tests or builds
-# CMD ["flutter", "build", "apk", "--release"]
+    flutter pub get
+    # flutter build apk --release
