@@ -24,8 +24,7 @@ ENV FLUTTER_HOME=/opt/flutter
 ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 
 # Download and install Flutter SDK
-RUN --mount=type=cache,target=/tmp/flutter_download \
-    mkdir -p ${FLUTTER_HOME} && \
+RUN mkdir -p ${FLUTTER_HOME} && \
     cd /opt && \
     wget -q -P /tmp/flutter_download https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz && \
     tar xf /tmp/flutter_download/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -C /opt
@@ -44,30 +43,25 @@ ENV PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-
 
 # Download Android SDK command-line tools
 ARG CMDLINE_TOOLS_VERSION=11076708_latest
-RUN --mount=type=cache,target=/tmp/android_download \
-    mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
+RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
     wget -q https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}.zip -O /tmp/android_download/cmdline-tools.zip && \
     unzip -q /tmp/android_download/cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools && \
     mv ${ANDROID_SDK_ROOT}/cmdline-tools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest
 
 # Accept Android licenses
-RUN --mount=type=cache,target=/root/.android \
-    yes | sdkmanager --licenses > /dev/null || true
+RUN yes | sdkmanager --licenses > /dev/null || true
 
 # Install required Android SDK components (adjust versions as needed)
 # Using NDK 26 as it's commonly used and stable. The log showed issues with 27/29.
 ARG ANDROID_PLATFORM_VERSION=34
 ARG ANDROID_BUILD_TOOLS_VERSION=34.0.0
 ARG ANDROID_NDK_VERSION=26.1.10909125
-RUN --mount=type=cache,target=/root/.android \
-    --mount=type=cache,target=${ANDROID_SDK_ROOT}/licenses \
-    sdkmanager --install \
+RUN sdkmanager --install \
     "platform-tools" \
     "platforms;android-${ANDROID_PLATFORM_VERSION}" \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
-    "ndk;${ANDROID_NDK_VERSION}"
-
-RUN chmod +x /opt/android-sdk/cmdline-tools/latest/bin/* && \
+    "ndk;${ANDROID_NDK_VERSION}" && \
+    chmod +x /opt/android-sdk/cmdline-tools/latest/bin/* && \
     chmod +x /opt/android-sdk/platform-tools/*
 
 WORKDIR /app
