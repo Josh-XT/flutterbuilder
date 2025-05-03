@@ -57,8 +57,7 @@ RUN sdkmanager --install \
     "platform-tools" \
     "platforms;android-${ANDROID_PLATFORM_VERSION}" \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
-    "ndk;${ANDROID_NDK_VERSION}" \
-    "emulator" # Optional: if you need emulator support
+    "ndk;${ANDROID_NDK_VERSION}"
 
 # Grant execution permissions for Gradle wrapper
 RUN chmod +x /opt/android-sdk/cmdline-tools/latest/bin/*
@@ -68,17 +67,8 @@ RUN chmod +x /opt/android-sdk/platform-tools/*
 # Set working directory
 WORKDIR /app
 
-# Copy pubspec files first to leverage Docker cache for dependencies
-COPY pubspec.* ./
-RUN flutter pub get
-
-# Copy the rest of the application code
-COPY . .
-
-# Grant execution permissions for the project's gradlew
-RUN chmod +x ./android/gradlew
-
 RUN git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
+    chmod +x /app/agixt_mobile/android/gradlew && \
     cd /app/agixt_mobile && \
     git checkout 0.0.1 && \
     flutter pub get && \
