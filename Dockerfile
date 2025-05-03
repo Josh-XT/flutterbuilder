@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # --- Flutter SDK ---
 # Set Flutter version (adjust if needed, e.g., based on your pubspec.yaml or CI)
-ARG FLUTTER_VERSION=3.24.5
+ARG FLUTTER_VERSION=3.29.3
 ENV FLUTTER_HOME=/opt/flutter
 ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 
