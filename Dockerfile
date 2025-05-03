@@ -26,13 +26,12 @@ ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 # Download and install Flutter SDK
 RUN mkdir -p ${FLUTTER_HOME} && \
     cd /opt && \
-    wget -q -P /tmp/flutter_download https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz && \
-    tar xf /tmp/flutter_download/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -C /opt
+    wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz && \
+    tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -C /opt && \
+    rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
 
 # Pre-download Flutter engine artifacts and Dart SDK
 RUN flutter precache --linux --android
-
-# Verify installation and download any missing components
 RUN flutter doctor
 
 # --- Android SDK ---
@@ -42,9 +41,10 @@ ENV PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-
 # Download Android SDK command-line tools
 ARG CMDLINE_TOOLS_VERSION=11076708_latest
 RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
-    wget -q https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}.zip -O /tmp/android_download/cmdline-tools.zip && \
-    unzip -q /tmp/android_download/cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools && \
-    mv ${ANDROID_SDK_ROOT}/cmdline-tools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}.zip -O /tmp/cmdline-tools.zip && \
+    unzip -q /tmp/cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools && \
+    mv ${ANDROID_SDK_ROOT}/cmdline-tools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest && \
+    rm /tmp/cmdline-tools.zip
 
 # Accept Android licenses
 RUN yes | sdkmanager --licenses > /dev/null || true
@@ -65,9 +65,8 @@ RUN sdkmanager --install \
 WORKDIR /app
 
 RUN git config --global --add safe.directory /opt/flutter && \
-    git config --global --add safe.directory /app
-
-RUN git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
+    git config --global --add safe.directory /app && \
+    git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
     cd /app/agixt_mobile && \
     flutter pub get
     # flutter build apk --release
