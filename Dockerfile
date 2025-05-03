@@ -5,7 +5,8 @@ FROM openjdk:17-jdk-slim AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install necessary packages: git, curl, unzip, wget, standard C++ library, libGLU (for Flutter)
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     git \
     curl \
@@ -59,10 +60,13 @@ RUN sdkmanager --install \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
     "ndk;${ANDROID_NDK_VERSION}"
 
-RUN chmod +x /opt/android-sdk/cmdline-tools/latest/bin/*
-RUN chmod +x /opt/android-sdk/platform-tools/*
+RUN chmod +x /opt/android-sdk/cmdline-tools/latest/bin/* && \
+    chmod +x /opt/android-sdk/platform-tools/*
 
 WORKDIR /app
+
+RUN git config --global --add safe.directory /opt/flutter
+RUN git config --global --add safe.directory /app
 
 RUN git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
     cd /app/agixt_mobile && \
