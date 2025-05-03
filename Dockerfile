@@ -30,12 +30,10 @@ RUN mkdir -p ${FLUTTER_HOME} && \
     tar xf /tmp/flutter_download/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -C /opt
 
 # Pre-download Flutter engine artifacts and Dart SDK
-RUN --mount=type=cache,target=/root/.pub-cache \
-    flutter precache --linux --android
+RUN flutter precache --linux --android
 
 # Verify installation and download any missing components
-RUN --mount=type=cache,target=/root/.pub-cache \
-    flutter doctor
+RUN flutter doctor
 
 # --- Android SDK ---
 ENV ANDROID_SDK_ROOT=/opt/android-sdk
@@ -66,11 +64,10 @@ RUN sdkmanager --install \
 
 WORKDIR /app
 
-RUN git config --global --add safe.directory /opt/flutter
-RUN git config --global --add safe.directory /app
+RUN git config --global --add safe.directory /opt/flutter && \
+    git config --global --add safe.directory /app
 
-RUN --mount=type=cache,target=/root/.pub-cache \
-    git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
+RUN git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
     cd /app/agixt_mobile && \
     flutter pub get
     # flutter build apk --release
