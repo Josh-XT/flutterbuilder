@@ -29,9 +29,7 @@ RUN mkdir -p ${FLUTTER_HOME} && \
     cd /opt && \
     wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz && \
     tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -C /opt && \
-    rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz && \
-    flutter doctor --verbose && \
-    flutter precache --linux --android
+    rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
 
 # --- Android SDK ---
 ENV ANDROID_SDK_ROOT=/opt/android-sdk
@@ -59,7 +57,9 @@ RUN sdkmanager --install \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
     "ndk;${ANDROID_NDK_VERSION}" && \
     chmod +x /opt/android-sdk/cmdline-tools/latest/bin/* && \
-    chmod +x /opt/android-sdk/platform-tools/*
+    chmod +x /opt/android-sdk/platform-tools/* && \
+    flutter doctor --verbose && \
+    flutter precache --linux --android
 
 WORKDIR /app
 
