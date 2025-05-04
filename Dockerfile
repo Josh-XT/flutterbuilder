@@ -10,16 +10,14 @@ RUN git config --global --add safe.directory /usr/local/flutter && \
 # Accept Android licenses
 RUN yes | flutter doctor --android-licenses || true
 
-# Update Android SDK components
-RUN sdkmanager "platforms;android-33" "build-tools;33.0.2"
+# Update Android SDK components to include required packages
+RUN sdkmanager \
+    "platforms;android-33" "build-tools;33.0.2" \
+    "ndk;27.0.11902837" \
+    "build-tools;34.0.0" \
+    "platforms;android-34" \
+    "platforms;android-31"
 
 WORKDIR /app
-
-# Clone and build the project
-RUN git config --global --add safe.directory /app && \
-    git clone https://github.com/AGiXT/mobile /app/agixt_mobile && \
-    cd /app/agixt_mobile && \
-    flutter pub get && \
-    flutter build apk --release --verbose &
 
 CMD ["bash"]
