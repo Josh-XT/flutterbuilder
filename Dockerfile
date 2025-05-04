@@ -16,7 +16,8 @@ RUN sdkmanager \
     "ndk;27.0.11902837" \
     "build-tools;34.0.0" \
     "platforms;android-34" \
-    "platforms;android-31"
+    "platforms;android-31" \
+    "cmake;3.22.1"
 
 WORKDIR /app
 
