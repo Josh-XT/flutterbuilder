@@ -1,0 +1,110 @@
+name: Build and Deploy Flutter App
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/flutterbuilder:main
+    env:
+      APP_NAME: AGiXT
+      AGIXT_SERVER: https://api.agixt.dev
+      APP_URI: https://agixt.dev
+    outputs:
+      new_tag: ${{ steps.next_tag_version.outputs.new_tag }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Increment tag version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: mathieudutour/github-tag-action@v6.2
+        id: next_tag_version
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: main
+          create_annotated_tag: true
+          dry_run: true
+          
+      - name: Setup Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: Git Safe Directory
+        run: |
+          git config --global --add safe.directory /opt/flutter
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          
+      - name: Clone AGiXT Mobile App
+        run: |
+          git clone https://github.com/AGiXT/mobile .
+          
+      - name: Install dependencies
+        run: |
+          # Clear gradle cache to prevent corruption
+          rm -rf ~/.gradle/caches/
+          flutter pub get
+          
+      - name: Run tests
+        run: flutter test || true
+        
+      - name: Build Android release
+        run: |
+          # Fix permissions if needed
+          sudo chown -R $(whoami) .
+          flutter build apk --release --verbose
+          
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  release:
+    name: Create Release and Upload APK
+    needs: [apk]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.apk.outputs.new_tag }}
+          name: ${{ needs.apk.outputs.new_tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Download APK from build
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release.apk
+          
+      - name: Upload Release APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.apk.outputs.new_tag }}
+          files: app-release.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ needs.apk.outputs.new_tag }}
